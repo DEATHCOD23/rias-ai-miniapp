@@ -54,7 +54,7 @@
       <img id="coverImage" class="cover hidden" alt="Capa do episódio" referrerpolicy="no-referrer">
       <div>
         <div class="episodeTitle" id="videoTitle">Episódio selecionado</div>
-        <div class="episodeMeta">Página do conteúdo no Hanime.tv</div>
+        <div class="episodeMeta">Página do conteúdo no site de origem</div>
       </div>
     </div>
     <p class="notice" id="status">O episódio está pronto para ser aberto no site oficial.</p>
@@ -76,10 +76,16 @@
   const coverUrl = params.get('cover') || '';
   let parsed = null;
   try { parsed = new URL(selected); } catch(e) {}
+  const source = parsed && parsed.hostname === 'hanime.tv' ? 'Hanime.tv' :
+    parsed && parsed.hostname === 'hentaianime.cc' ? 'HentaiAnime.cc' : '';
   const valid = !!parsed &&
     parsed.protocol === 'https:' &&
-    parsed.hostname === 'hanime.tv' &&
-    /^\/videos\/hentai\/[a-z0-9-]+\/?$/i.test(parsed.pathname);
+    (
+      (parsed.hostname === 'hanime.tv' &&
+       /^\/videos\/hentai\/[a-z0-9-]+\/?$/i.test(parsed.pathname)) ||
+      (parsed.hostname === 'hentaianime.cc' &&
+       /^\/hentai\/f\/[a-z0-9-]+\/?$/i.test(parsed.pathname))
+    );
 
   const ageGate = document.getElementById('ageGate');
   const playerPanel = document.getElementById('playerPanel');
@@ -103,7 +109,7 @@
     playerPanel.classList.remove('hidden');
 
     if(!valid){
-      status.textContent = 'Nenhum link válido foi recebido. Volte ao bot e envie /reproduzir seguido de um link de episódio do Hanime.tv.';
+      status.textContent = 'Nenhum link válido foi recebido. Volte ao bot e envie /reproduzir seguido de um link oficial do Hanime.tv ou HentaiAnime.cc.';
       official.classList.add('hidden');
       title.textContent = 'Nenhum episódio selecionado';
       return;
@@ -112,7 +118,8 @@
     official.href = parsed.href;
     urlText.textContent = parsed.href;
     title.textContent = titleFromUrl(parsed);
-    status.textContent = 'Toque no botão abaixo para abrir a página do episódio no site oficial.';
+    status.textContent = 'Toque no botão abaixo para abrir a página no site oficial: ' + source + '.';
+    official.textContent = '▶️ Abrir no ' + source;
 
     if(coverUrl){
       try {
@@ -132,7 +139,7 @@
     }
   });
 
-  // Abre o Hanime no navegador externo do aparelho, em vez de tentar carregá-lo dentro da Mini App.
+  // Abre o site de origem no navegador externo, sem tentar contornar bloqueios de incorporação.
   official.addEventListener('click', function(event){
     if(tg && typeof tg.openLink === 'function' && official.href){
       event.preventDefault();
