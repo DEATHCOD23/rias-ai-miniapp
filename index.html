@@ -132,6 +132,14 @@
     }
   });
 
+  // Abre o Hanime no navegador externo do aparelho, em vez de tentar carregá-lo dentro da Mini App.
+  official.addEventListener('click', function(event){
+    if(tg && typeof tg.openLink === 'function' && official.href){
+      event.preventDefault();
+      tg.openLink(official.href);
+    }
+  });
+
   document.getElementById('closeApp').addEventListener('click', function(){
     if(tg){ tg.close(); } else { history.back(); }
   });
